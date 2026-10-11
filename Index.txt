@@ -1,0 +1,1733 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VYRA — Train Smarter</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#EFF6FF',
+                            100: '#DBEAFE',
+                            500: '#3B82F6',
+                            600: '#2563EB',
+                            700: '#1D4ED8',
+                        },
+                        dark: {
+                            bg: '#080B12',
+                            card: '#111722',
+                            elevated: '#182130',
+                            border: '#253044',
+                            text: '#F8FAFC',
+                            muted: '#94A3B8'
+                        },
+                        light: {
+                            bg: '#F7F8FA',
+                            card: '#FFFFFF',
+                            border: '#E5E7EB',
+                            text: '#111827',
+                            muted: '#6B7280'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif]
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 9999px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(0.98); }
+        }
+        .animate-glow {
+            animation: pulseGlow 3s infinite ease-in-out;
+        }
+        .safe-bottom {
+            padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 70px);
+        }
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="h-full bg-light-bg text-light-text dark:bg-dark-bg dark:text-dark-text antialiased transition-colors duration-200 flex flex-col">
+
+    <div id="app" class="flex-1 flex flex-col h-full overflow-hidden relative">
+        
+        <!-- Toast Notification Container -->
+        <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full px-4"></div>
+
+        <!-- Global Modal Container -->
+        <div id="modal-container" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4"></div>
+
+        <!-- Desktop Sidebar & Mobile Top Bar Wrapper -->
+        <div class="flex-1 flex overflow-hidden">
+            
+            <!-- Desktop Sidebar -->
+            <aside id="desktop-sidebar" class="hidden md:flex flex-col w-64 border-r border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card z-30 shrink-0">
+                <div class="p-6 flex items-center justify-between border-b border-light-border dark:border-dark-border">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/30 text-white font-bold text-lg tracking-wider">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-brand-600 to-brand-500 bg-clip-text text-transparent">VYRA</span>
+                            <p class="text-xs text-light-muted dark:text-dark-muted font-medium">Train smarter.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto" id="sidebar-nav">
+                    <!-- Nav items injected by JS -->
+                </nav>
+
+                <div class="p-4 border-t border-light-border dark:border-dark-border">
+                    <div class="flex items-center justify-between bg-light-bg dark:bg-dark-elevated p-3 rounded-xl border border-light-border dark:border-dark-border">
+                        <div class="flex items-center gap-3">
+                            <div id="sidebar-user-avatar" class="w-9 h-9 rounded-full bg-brand-500/10 text-brand-600 font-semibold flex items-center justify-center">T</div>
+                            <div class="overflow-hidden">
+                                <p id="sidebar-user-name" class="text-sm font-semibold truncate">Tega</p>
+                                <p class="text-xs text-light-muted dark:text-dark-muted truncate">Pro Plan</p>
+                            </div>
+                        </div>
+                        <button onclick="router.navigate('profile')" class="p-2 hover:bg-light-border dark:hover:bg-dark-border rounded-lg text-light-muted dark:text-dark-muted transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+                
+                <!-- Mobile Header -->
+                <header class="md:hidden flex items-center justify-between px-5 py-4 border-b border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card z-20">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-brand-600 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-brand-500/20">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                            </svg>
+                        </div>
+                        <span class="text-lg font-bold tracking-tight bg-gradient-to-r from-brand-600 to-brand-500 bg-clip-text text-transparent">VYRA</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="openCoachModal()" class="p-2 rounded-xl bg-light-bg dark:bg-dark-elevated border border-light-border dark:border-dark-border text-brand-600 dark:text-brand-500 hover:bg-brand-50 dark:hover:bg-dark-border transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"/></svg>
+                        </button>
+                        <button onclick="router.navigate('profile')" class="w-8 h-8 rounded-full bg-brand-500/10 text-brand-600 font-semibold text-sm flex items-center justify-center border border-brand-500/20">
+                            <span id="mobile-user-avatar">T</span>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Scrollable Viewport -->
+                <div id="view-container" class="flex-1 overflow-y-auto p-4 md:p-8 safe-bottom md:pb-8">
+                    <!-- Dynamic View Content -->
+                </div>
+
+            </main>
+        </div>
+
+        <!-- Mobile Bottom Navigation Bar -->
+        <nav aria-label="Mobile Navigation" class="md:hidden fixed bottom-0 left-0 right-0 bg-light-card/90 dark:bg-dark-card/90 backdrop-blur-lg border-t border-light-border dark:border-dark-border z-40 px-2 py-2 flex justify-around items-center" id="mobile-nav">
+            <!-- Nav buttons injected by JS -->
+        </nav>
+
+        <!-- Active Workout Floating Bar (if workout in progress) -->
+        <div id="active-workout-banner" class="hidden fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:w-96 bg-brand-600 text-white p-4 rounded-2xl shadow-2xl z-40 flex items-center justify-between border border-brand-500/50 animate-glow cursor-pointer" onclick="router.navigate('active-workout')">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white">
+                    <svg class="w-6 h-6 animate-spin" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-brand-100 uppercase tracking-wider">Workout in Progress</p>
+                    <p id="banner-routine-name" class="font-bold text-sm truncate">Push A</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span id="banner-timer" class="font-mono text-sm font-semibold bg-black/20 px-2.5 py-1 rounded-lg">00:00</span>
+                <span class="text-xs bg-white text-brand-600 font-bold px-3 py-1.5 rounded-xl shadow">Resume</span>
+            </div>
+        </div>
+
+        <!-- Smart Rest Timer Modal / Floating Overlay -->
+        <div id="rest-timer-overlay" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+            <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border w-full max-w-sm rounded-3xl p-6 text-center shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 right-0 h-1.5 bg-brand-500/20">
+                    <div id="rest-progress-bar" class="h-full bg-brand-600 transition-all duration-1000" style="width: 100%"></div>
+                </div>
+                <h3 class="text-xs font-semibold text-light-muted dark:text-dark-muted uppercase tracking-widest mt-2">Rest Period</h3>
+                <p id="rest-exercise-title" class="text-sm font-medium mt-1 text-brand-600 dark:text-brand-400">Bench Press</p>
+                
+                <div class="my-8 relative flex items-center justify-center">
+                    <div class="w-40 h-40 rounded-full border-4 border-light-border dark:border-dark-border flex items-center justify-center relative">
+                        <span id="rest-time-display" class="font-mono text-4xl font-bold tracking-tight">01:30</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-center gap-3 mb-6">
+                    <button onclick="adjustRestTime(-15)" class="px-3 py-2 rounded-xl bg-light-bg dark:bg-dark-elevated border border-light-border dark:border-dark-border text-xs font-semibold hover:bg-light-border dark:hover:bg-dark-border transition-colors">-15s</button>
+                    <button onclick="toggleRestPause()" id="rest-pause-btn" class="px-4 py-2 rounded-xl bg-light-bg dark:bg-dark-elevated border border-light-border dark:border-dark-border text-xs font-semibold hover:bg-light-border dark:hover:bg-dark-border transition-colors">Pause</button>
+                    <button onclick="adjustRestTime(15)" class="px-3 py-2 rounded-xl bg-light-bg dark:bg-dark-elevated border border-light-border dark:border-dark-border text-xs font-semibold hover:bg-light-border dark:hover:bg-dark-border transition-colors">+15s</button>
+                </div>
+
+                <button onclick="dismissRestTimer()" class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-2xl shadow-lg shadow-brand-500/30 transition-all">Skip Rest</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /* ==========================================
+           VYRA CORE APPLICATION ENGINE & STATE
+           ========================================== */
+
+        // Default Demo Data Generator
+        const DEFAULT_STATE = {
+            user: {
+                name: "Tega",
+                email: "tega@vyra.fit",
+                goal: "Build Muscle",
+                experience: "Intermediate",
+                daysPerWeek: 4,
+                duration: 60,
+                equipment: "Full Gym",
+                unit: "kg", // kg or lbs
+                theme: "system" // light, dark, system
+            },
+            dashboardWidgets: [
+                { id: 'todaysWorkout', enabled: true, order: 1 },
+                { id: 'thisWeek', enabled: true, order: 2 },
+                { id: 'aiCoach', enabled: true, order: 3 },
+                { id: 'recentPR', enabled: true, order: 4 },
+                { id: 'trainingVolume', enabled: true, order: 5 },
+                { id: 'bodyweight', enabled: true, order: 6 }
+            ],
+            exercises: [
+                { id: 'ex_1', name: 'Barbell Bench Press', muscle: 'Chest', secondary: ['Triceps', 'Shoulders'], equipment: 'Barbell', pattern: 'Push', type: 'weight_reps', instructions: 'Lie on bench, grip bar slightly wider than shoulder-width, lower to mid-chest and press up.' },
+                { id: 'ex_2', name: 'Incline Dumbbell Press', muscle: 'Chest', secondary: ['Shoulders', 'Triceps'], equipment: 'Dumbbells', pattern: 'Push', type: 'weight_reps', instructions: 'Set bench to 30-45 degrees, press dumbbells overhead with control.' },
+                { id: 'ex_3', name: 'Pull-Up', muscle: 'Back', secondary: ['Biceps'], equipment: 'Bodyweight', pattern: 'Pull', type: 'weight_reps', instructions: 'Grab bar with overhand grip, pull chest to bar engaging lats.' },
+                { id: 'ex_4', name: 'Barbell Row', muscle: 'Back', secondary: ['Biceps', 'Rear Delts'], equipment: 'Barbell', pattern: 'Pull', type: 'weight_reps', instructions: 'Hinge at hips, pull bar to lower ribcage keeping elbows tucked.' },
+                { id: 'ex_5', name: 'Barbell Squat', muscle: 'Quads', secondary: ['Glutes', 'Core'], equipment: 'Barbell', pattern: 'Squat', type: 'weight_reps', instructions: 'Rest bar across upper back, squat down keeping knees tracking over toes.' },
+                { id: 'ex_6', name: 'Romanian Deadlift', muscle: 'Isquiotibiales', secondary: ['Glutes', 'Lower Back'], equipment: 'Barbell', pattern: 'Hinge', type: 'weight_reps', instructions: 'Hinge hips back with slight knee bend, lower bar along shins until hamstring stretch.' },
+                { id: 'ex_7', name: 'Overhead Shoulder Press', muscle: 'Shoulders', secondary: ['Triceps'], equipment: 'Barbell', pattern: 'Push', type: 'weight_reps', instructions: 'Press barbell overhead from collarbone height, locking out overhead.' },
+                { id: 'ex_8', name: 'Barbell Curl', muscle: 'Biceps', secondary: ['Forearms'], equipment: 'Barbell', pattern: 'Pull', type: 'weight_reps', instructions: 'Curl bar upward keeping elbows stationary at your sides.' },
+                { id: 'ex_9', name: 'Triceps Pushdown', muscle: 'Triceps', secondary: [], equipment: 'Cable', pattern: 'Push', type: 'weight_reps', instructions: 'Push cable attachment down by extending elbows.' },
+                { id: 'ex_10', name: 'Leg Press', muscle: 'Quads', secondary: ['Glutes'], equipment: 'Machine', pattern: 'Squat', type: 'weight_reps', instructions: 'Place feet shoulder-width on sled, lower and press back up.' },
+                { id: 'ex_11', name: 'Lat Pulldown', muscle: 'Back', secondary: ['Biceps'], equipment: 'Cable', pattern: 'Pull', type: 'weight_reps', instructions: 'Pull bar down to upper chest while leaning back slightly.' },
+                { id: 'ex_12', name: 'Lateral Raise', muscle: 'Shoulders', secondary: [], equipment: 'Dumbbells', pattern: 'Push', type: 'weight_reps', instructions: 'Raise dumbbells out to sides until parallel to floor.' }
+            ],
+            routines: [
+                {
+                    id: 'rut_1',
+                    name: 'Push A (Chest & Triceps)',
+                    description: 'Heavy compound pressing and targeted isolation.',
+                    duration: 55,
+                    muscles: ['Chest', 'Shoulders', 'Triceps'],
+                    exercises: [
+                        { exerciseId: 'ex_1', sets: 4, targetReps: '8-10', restSec: 120 },
+                        { exerciseId: 'ex_2', sets: 3, targetReps: '10-12', restSec: 90 },
+                        { exerciseId: 'ex_7', sets: 3, targetReps: '8-10', restSec: 120 },
+                        { exerciseId: 'ex_12', sets: 3, targetReps: '12-15', restSec: 60 },
+                        { exerciseId: 'ex_9', sets: 3, targetReps: '10-12', restSec: 60 }
+                    ],
+                    lastPerformed: '2 days ago'
+                },
+                {
+                    id: 'rut_2',
+                    name: 'Pull A (Back & Biceps)',
+                    description: 'Lat dominance and upper back thickness.',
+                    duration: 50,
+                    muscles: ['Back', 'Biceps'],
+                    exercises: [
+                        { exerciseId: 'ex_3', sets: 4, targetReps: '6-8', restSec: 120 },
+                        { exerciseId: 'ex_4', sets: 3, targetReps: '8-10', restSec: 90 },
+                        { exerciseId: 'ex_11', sets: 3, targetReps: '10-12', restSec: 90 },
+                        { exerciseId: 'ex_8', sets: 3, targetReps: '10-12', restSec: 60 }
+                    ],
+                    lastPerformed: '4 days ago'
+                },
+                {
+                    id: 'rut_3',
+                    name: 'Legs A (Quads & Posterior)',
+                    description: 'Squat focus with hamstring accessory work.',
+                    duration: 60,
+                    muscles: ['Quads', 'Isquiotibiales', 'Glutes'],
+                    exercises: [
+                        { exerciseId: 'ex_5', sets: 4, targetReps: '6-8', restSec: 180 },
+                        { exerciseId: 'ex_6', sets: 3, targetReps: '8-10', restSec: 120 },
+                        { exerciseId: 'ex_10', sets: 3, targetReps: '10-12', restSec: 90 }
+                    ],
+                    lastPerformed: '6 days ago'
+                },
+                {
+                    id: 'rut_4',
+                    name: 'Upper Body Hypertrophy',
+                    description: 'Balanced upper body session.',
+                    duration: 60,
+                    muscles: ['Chest', 'Back', 'Shoulders'],
+                    exercises: [
+                        { exerciseId: 'ex_1', sets: 3, targetReps: '8-10', restSec: 120 },
+                        { exerciseId: 'ex_3', sets: 3, targetReps: '8-10', restSec: 120 },
+                        { exerciseId: 'ex_2', sets: 3, targetReps: '10-12', restSec: 90 },
+                        { exerciseId: 'ex_11', sets: 3, targetReps: '10-12', restSec: 90 }
+                    ],
+                    lastPerformed: '1 week ago'
+                }
+            ],
+            workouts: [
+                {
+                    id: 'w_1',
+                    routineId: 'rut_1',
+                    routineName: 'Push A (Chest & Triceps)',
+                    date: new Date(Date.now() - 2 * 86400000).toISOString(),
+                    durationMinutes: 54,
+                    exercisesCount: 5,
+                    totalSets: 16,
+                    totalVolume: 8450,
+                    prs: ['Barbell Bench Press: 82.5 kg × 8 (New PR)'],
+                    exercisesData: [
+                        {
+                            exerciseId: 'ex_1',
+                            name: 'Barbell Bench Press',
+                            sets: [
+                                { weight: 80, reps: 8, completed: true },
+                                { weight: 82.5, reps: 8, completed: true },
+                                { weight: 82.5, reps: 7, completed: true },
+                                { weight: 80, reps: 8, completed: true }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 'w_2',
+                    routineId: 'rut_2',
+                    routineName: 'Pull A (Back & Biceps)',
+                    date: new Date(Date.now() - 4 * 86400000).toISOString(),
+                    durationMinutes: 48,
+                    exercisesCount: 4,
+                    totalSets: 13,
+                    totalVolume: 6720,
+                    prs: [],
+                    exercisesData: []
+                },
+                {
+                    id: 'w_3',
+                    routineId: 'rut_3',
+                    routineName: 'Legs A (Quads & Posterior)',
+                    date: new Date(Date.now() - 6 * 86400000).toISOString(),
+                    durationMinutes: 62,
+                    exercisesCount: 3,
+                    totalSets: 10,
+                    totalVolume: 11200,
+                    prs: ['Barbell Squat: 110 kg × 6'],
+                    exercisesData: []
+                }
+            ],
+            bodyweightLogs: [
+                { date: new Date(Date.now() - 21 * 86400000).toISOString().split('T')[0], weight: 78.4 },
+                { date: new Date(Date.now() - 14 * 86400000).toISOString().split('T')[0], weight: 78.2 },
+                { date: new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0], weight: 77.9 },
+                { date: new Date(Date.now()).toISOString().split('T')[0], weight: 77.6 }
+            ],
+            calendar: {
+                // 'YYYY-MM-DD': { routineId, completed: true/false }
+            },
+            timerSettings: {
+                autoStart: true,
+                defaultRest: 90,
+                soundEnabled: true
+            },
+            activeSession: null // If workout is ongoing
+        };
+
+        // Storage Controller
+        class StorageManager {
+            static load() {
+                try {
+                    const data = localStorage.getItem('vyra_state_v1');
+                    if (!data) return DEFAULT_STATE;
+                    const parsed = JSON.parse(data);
+                    return { ...DEFAULT_STATE, ...parsed };
+                } catch (e) {
+                    console.error("Error loading state, falling back to default:", e);
+                    return DEFAULT_STATE;
+                }
+            }
+
+            static save(state) {
+                try {
+                    localStorage.setItem('vyra_state_v1', JSON.stringify(state));
+                } catch (e) {
+                    console.error("Error saving state:", e);
+                    showToast("Error saving data to local storage", "error");
+                }
+            }
+
+            static reset() {
+                localStorage.removeItem('vyra_state_v1');
+                return DEFAULT_STATE;
+            }
+        }
+
+        let appState = StorageManager.load();
+        
+        function saveState() {
+            StorageManager.save(appState);
+        }
+
+        // Audio Helper using Web Audio API
+        const soundEngine = {
+            playBeep() {
+                if (!appState.timerSettings.soundEnabled) return;
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, ctx.currentTime); // A5
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.5);
+                } catch(e) {
+                    // Audio context blocked or not supported
+                }
+            }
+        }
+    </script>
+
+    <script>
+        /* ==========================================
+           ROUTER & NAVIGATION CONTROLLER
+           ========================================== */
+        class Router {
+            constructor() {
+                this.currentRoute = 'home';
+                window.addEventListener('hashchange', () => this.handleRoute());
+            }
+
+            init() {
+                const hash = window.location.hash.replace('#', '');
+                this.navigate(hash || 'home', false);
+            }
+
+            navigate(route, updateHash = true) {
+                this.currentRoute = route;
+                if (updateHash) {
+                    window.location.hash = route;
+                }
+                this.renderNav();
+                this.renderView();
+                window.scrollTo(0, 0);
+            }
+
+            renderNav() {
+                const navItems = [
+                    { id: 'home', label: 'Home', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>` },
+                    { id: 'train', label: 'Train', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>` },
+                    { id: 'plan', label: 'Plan', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>` },
+                    { id: 'progress', label: 'Progress', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 13.5l4.5 4.5L15 10.5l6 6M3 6.75h18"/></svg>` },
+                    { id: 'profile', label: 'Profile', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>` }
+                ];
+
+                // Render Desktop Sidebar
+                const sidebarNav = document.getElementById('sidebar-nav');
+                if (sidebarNav) {
+                    sidebarNav.innerHTML = navItems.map(item => {
+                        const active = this.currentRoute === item.id;
+                        return `
+                            <button onclick="router.navigate('${item.id}')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all ${active ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/25' : 'text-light-muted dark:text-dark-muted hover:bg-light-bg dark:hover:bg-dark-elevated hover:text-light-text dark:hover:text-dark-text'}">
+                                ${item.icon}
+                                <span>${item.label}</span>
+                            </button>
+                        `;
+                    }).join('');
+                }
+
+                // Render Mobile Bottom Bar
+                const mobileNav = document.getElementById('mobile-nav');
+                if (mobileNav) {
+                    mobileNav.innerHTML = navItems.map(item => {
+                        const active = this.currentRoute === item.id;
+                        return `
+                            <button onclick="router.navigate('${item.id}')" class="flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all ${active ? 'text-brand-600 dark:text-brand-500 font-semibold' : 'text-light-muted dark:text-dark-muted'}">
+                                ${item.icon}
+                                <span class="text-[10px] mt-1">${item.label}</span>
+                            </button>
+                        `;
+                    }).join('');
+                }
+            }
+
+            renderView() {
+                const container = document.getElementById('view-container');
+                if (!container) return;
+
+                // Check active workout banner
+                updateActiveWorkoutBanner();
+
+                switch(this.currentRoute) {
+                    case 'home':
+                        container.innerHTML = renderHomeView();
+                        initHomeWidgets();
+                        break;
+                    case 'train':
+                        container.innerHTML = renderTrainView();
+                        initTrainTabs();
+                        break;
+                    case 'plan':
+                        container.innerHTML = renderPlanView();
+                        initPlanCalendar();
+                        break;
+                    case 'progress':
+                        container.innerHTML = renderProgressView();
+                        initProgressCharts();
+                        break;
+                    case 'profile':
+                        container.innerHTML = renderProfileView();
+                        break;
+                    case 'active-workout':
+                        if (!appState.activeSession) {
+                            this.navigate('home');
+                            return;
+                        }
+                        container.innerHTML = renderActiveWorkoutView();
+                        initActiveWorkout();
+                        break;
+                    case 'routine-builder':
+                        container.innerHTML = renderRoutineBuilderView();
+                        break;
+                    case 'ai-generator':
+                        container.innerHTML = renderAIGeneratorView();
+                        break;
+                    default:
+                        container.innerHTML = renderHomeView();
+                }
+            }
+        }
+
+        const router = new Router();
+    </script>
+
+    <script>
+        /* ==========================================
+           UI UTILITIES & NOTIFICATIONS
+           ========================================== */
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `flex items-center gap-3 p-4 rounded-2xl shadow-xl text-sm font-medium text-white transition-all transform translate-y-2 opacity-0 pointer-events-auto ${type === 'error' ? 'bg-red-600' : 'bg-slate-900 dark:bg-slate-800 border border-slate-700'}`;
+            toast.innerHTML = `
+                <svg class="w-5 h-5 text-brand-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function openModal(contentHtml) {
+            const container = document.getElementById('modal-container');
+            if (!container) return;
+            container.innerHTML = `
+                <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border w-full max-w-lg rounded-3xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+                    ${contentHtml}
+                </div>
+            `;
+            container.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            const container = document.getElementById('modal-container');
+            if (container) container.classList.add('hidden');
+        }
+
+        function updateActiveWorkoutBanner() {
+            const banner = document.getElementById('active-workout-banner');
+            if (!banner) return;
+            if (appState.activeSession) {
+                banner.classList.remove('hidden');
+                document.getElementById('banner-routine-name').textContent = appState.activeSession.routineName;
+                const elapsedSec = Math.floor((Date.now() - appState.activeSession.startTime) / 1000);
+                const mins = String(Math.floor(elapsedSec / 60)).padStart(2, '0');
+                const secs = String(elapsedSec % 60).padStart(2, '0');
+                document.getElementById('banner-timer').textContent = `${mins}:${secs}`;
+            } else {
+                banner.classList.add('hidden');
+            }
+        }
+
+        setInterval(updateActiveWorkoutBanner, 1000);
+    </script>
+
+    <script>
+        /* ==========================================
+           HOME VIEW & DASHBOARD WIDGETS
+           ========================================== */
+        function renderHomeView() {
+            const hour = new Date().getHours();
+            let greeting = "Good morning";
+            if (hour >= 12 && hour < 18) greeting = "Good afternoon";
+            else if (hour >= 18) greeting = "Good evening";
+
+            const todayFormatted = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+            
+            return `
+                <div class="max-w-4xl mx-auto space-y-6 pb-12">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-light-muted dark:text-dark-muted uppercase tracking-wider">${todayFormatted}</p>
+                            <h1 class="text-2xl md:text-3xl font-bold tracking-tight mt-1">${greeting}, ${appState.user.name}.</h1>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button onclick="openCustomizeDashboardModal()" class="px-3.5 py-2 rounded-xl bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border text-xs font-semibold hover:border-brand-500 transition-colors flex items-center gap-2">
+                                <svg class="w-4 h-4 text-light-muted dark:text-dark-muted" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
+                                <span>Customize</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Widgets Container -->
+                    <div id="dashboard-widgets-grid" class="space-y-6">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+            `;
+        }
+
+        function initHomeWidgets() {
+            const container = document.getElementById('dashboard-widgets-grid');
+            if (!container) return;
+
+            // Sort widgets by order
+            const widgets = [...appState.dashboardWidgets].sort((a, b) => a.order - b.order);
+            
+            container.innerHTML = widgets.map(w => {
+                if (!w.enabled) return '';
+                switch(w.id) {
+                    case 'todaysWorkout': return renderWidgetTodaysWorkout();
+                    case 'thisWeek': return renderWidgetThisWeek();
+                    case 'aiCoach': return renderWidgetAICoach();
+                    case 'recentPR': return renderWidgetRecentPR();
+                    case 'trainingVolume': return renderWidgetTrainingVolume();
+                    case 'bodyweight': return renderWidgetBodyweight();
+                    default: return '';
+                }
+            }).join('');
+        }
+
+        function renderWidgetTodaysWorkout() {
+            const nextRoutine = appState.routines[0] || {};
+            return `
+                <div class="bg-gradient-to-br from-brand-600 to-brand-700 text-white rounded-3xl p-6 md:p-8 shadow-xl shadow-brand-500/20 relative overflow-hidden">
+                    <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-semibold uppercase tracking-wider">Today's Workout</span>
+                        <span class="text-xs font-medium text-brand-100">${nextRoutine.duration || 45} mins · ${nextRoutine.exercises ? nextRoutine.exercises.length : 0} exercises</span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold mb-2">${nextRoutine.name || 'Push A (Chest & Triceps)'}</h2>
+                    <p class="text-brand-100 text-sm mb-6 max-w-lg">${nextRoutine.description || 'Targeted pressing and isolation for maximum hypertrophy.'}</p>
+                    <div class="flex flex-wrap items-center gap-4">
+                        <button onclick="startWorkout('${nextRoutine.id || 'rut_1'}')" class="px-6 py-3.5 bg-white text-brand-600 font-bold rounded-2xl shadow-lg hover:bg-brand-50 transition-all flex items-center gap-2">
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            <span>START WORKOUT</span>
+                        </button>
+                        <button onclick="router.navigate('train')" class="px-5 py-3.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-2xl transition-all">
+                            Choose Routine
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderWidgetThisWeek() {
+            const completedCount = appState.workouts.length;
+            const goal = appState.user.daysPerWeek || 4;
+            const percentage = Math.min(100, Math.round((completedCount / goal) * 100));
+
+            return `
+                <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-3xl p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-base">This Week</h3>
+                        <span class="text-xs font-semibold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-dark-elevated px-2.5 py-1 rounded-lg">${completedCount} / ${goal} workouts</span>
+                    </div>
+                    <div class="w-full bg-light-border dark:bg-dark-border h-2.5 rounded-full overflow-hidden mb-4">
+                        <div class="bg-brand-600 h-full rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
+                    </div>
+                    <div class="grid grid-cols-7 gap-2 text-center">
+                        ${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => {
+                            const isDone = i < completedCount;
+                            return `
+                                <div class="flex flex-col items-center gap-1.5">
+                                    <span class="text-[11px] text-light-muted dark:text-dark-muted font-medium">${day}</span>
+                                    <div class="w-9 h-9 rounded-xl flex items-center justify-center font-semibold text-xs ${isDone ? 'bg-brand-600 text-white shadow-md shadow-brand-500/20' : 'bg-light-bg dark:bg-dark-elevated border border-light-border dark:border-dark-border text-light-muted dark:text-dark-muted'}">
+                                        ${isDone ? '✓' : i + 1}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderWidgetAICoach() {
+            return `
+                <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-3xl p-6 shadow-sm flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-brand-500/10 text-brand-600 dark:text-brand-500 flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-1">
+                            <h4 class="font-bold text-sm">Smart Coach Recommendation</h4>
+                            <span class="text-[10px] text-light-muted dark:text-dark-muted">Updated today</span>
+                        </div>
+                        <p class="text-sm text-light-muted dark:text-dark-muted leading-relaxed mb-3">Your bench press performance has improved by 2.5 kg over your last 2 sessions. Consider aiming for 82.5 kg for 3 sets today.</p>
+                        <button onclick="openCoachModal()" class="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1">
+                            <span>Ask Coach a question</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderWidgetRecentPR() {
+            return `
+                <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-3xl p-6 shadow-sm flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold text-lg">🏆</div>
+                        <div>
+                            <p class="text-xs text-light-muted dark:text-dark-muted font-medium uppercase tracking-wider">Recent Personal Record</p>
+                            <h4 class="font-bold text-base mt-0.5">Barbell Bench Press</h4>
+                            <p class="text-xs text-brand-600 dark:text-brand-400 font-semibold mt-0.5">82.5 kg × 8 reps · 2 days ago</p>
+                        </div>
+                    </div>
+                    <button onclick="router.navigate('progress')" class="px-4 py-2 bg-light-bg dark:bg-dark-elevated border border-light-border dark:border-dark-border text-xs font-semibold rounded-xl hover:bg-light-border dark:hover:bg-dark-border transition-colors">View All</button>
+                </div>
+            `;
+        }
+
+        function renderWidgetTrainingVolume() {
+            return `
+                <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-3xl p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="font-bold text-base">Training Volume</h3>
+                            <p class="text-xs text-light-muted dark:text-dark-muted">Total weight lifted this week</p>
+                        </div>
+                        <span class="text-lg font-bold text-brand-600 dark:text-brand-400">26,370 kg</span>
+                    </div>
+                    <div class="h-24 flex items-end gap-3 pt-4">
+                        ${[4200, 6720, 0, 8450, 7000, 0, 0].map((v, i) => {
+                            const max = 10000;
+                            const h = Math.round((v / max) * 100);
+                            return `
+                                <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                                    <div class="w-full bg-brand-600/20 dark:bg-dark-elevated rounded-t-lg relative overflow-hidden" style="height: 100%;">
+                                        <div class="absolute bottom-0 left-0 right-0 bg-brand-600 rounded-t-lg transition-all duration-500" style="height: ${h}%"></div>
+                                    </div>
+                                    <span class="text-[10px] text-light-muted dark:text-dark-muted">${['M','T','W','T','F','S','S'][i]}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderWidgetBodyweight() {
+            const latestBW = appState.bodyweightLogs[appState.bodyweightLogs.length - 1] || { weight: 77.6 };
+            return `
+                <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-3xl p-6 shadow-sm flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold text-lg">⚖️</div>
+                        <div>
+                            <p class="text-xs text-light-muted dark:text-dark-muted font-medium uppercase tracking-wider">Current Bodyweight</p>
+                            <h4 class="font-bold text-xl mt-0.5">${latestBW.weight} <span class="text-sm font-normal text-light-muted">${appState.user.unit}</span></h4>
+                        </div>
+                    </div>
+                    <button onclick="openLogBodyweightModal()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl shadow-md transition-all">+ Log Weight</button>
+                </div>
+            `;
+        }
+
+        function openCustomizeDashboardModal() {
+            openModal(`
+                <h3 class="text-lg font-bold mb-4">Customize Dashboard</h3>
+                <p class="text-xs text-light-muted dark:text-dark-muted mb-6">Enable, disable, or reorder widgets on your home screen.</p>
+                <div class="space-y-3 mb-6">
+                    ${appState.dashboardWidgets.map((w, index) => `
+                        <div class="flex items-center justify-between p-3 bg-light-bg dark:bg-dark-elevated rounded-2xl border border-light-border dark:border-dark-border">
+                            <span class="font-medium text-sm capitalize">${w.id.replace(/([A-Z])/g, ' $1')}</span>
+                            <div class="flex items-center gap-2">
+                                <button onclick="moveWidget(${index}, -1)" class="p-1.5 hover:bg-light-border dark:hover:bg-dark-border rounded-lg text-xs">▲</button>
+                                <button onclick="moveWidget(${index}, 1)" class="p-1.5 hover:bg-light-border dark:hover:bg-dark-border rounded-lg text-xs">▼</button>
+                                <input type="checkbox" ${w.enabled ? 'checked' : ''} onchange="toggleWidget('${w.id}')" class="w-4 h-4 accent-brand-600 rounded">
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <button onclick="closeModal(); router.navigate('home');" class="w-full py-3 bg-brand-600 text-white font-semibold rounded-2xl shadow-lg">Save & Close</button>
+            `);
+        }
+
+        function toggleWidget(id) {
+            const w = appState.dashboardWidgets.find(item => item.id === id);
+            if (w) {
+                w.enabled = !w.enabled;
+                saveState();
+                initHomeWidgets();
+            }
+        }
+
+        function moveWidget(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= appState.dashboardWidgets.length) return;
+            const temp = appState.dashboardWidgets[index];
+            appState.dashboardWidgets[index] = appState.dashboardWidgets[newIndex];
+            appState.dashboardWidgets[newIndex] = temp;
+            // Re-assign orders
+            appState.dashboardWidgets.forEach((w, i) => w.order = i + 1);
+            saveState();
+            openCustomizeDashboardModal();
+            initHomeWidgets();
+        }
+
+        function openLogBodyweightModal() {
+            openModal(`
+                <h3 class="text-lg font-bold mb-4">Log Bodyweight</h3>
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <label class="block text-xs font-semibold text-light-muted dark:text-dark-muted uppercase mb-2">Weight (${appState.user.unit})</label>
+                        <input type="number" step="0.1" id="modal-bw-input" value="77.6" class="w-full px-4 py-3 bg-light-bg dark:bg-dark-elevated border border-light-border dark:border-dark-border rounded-xl font-bold text-lg focus:outline-none focus:border-brand-600">
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeModal()" class="flex-1 py-3 bg-light-bg dark:bg-dark-elevated font-semibold rounded-xl border border-light-border dark:border-dark-border">Cancel</button>
+                    <button onclick="saveBodyweightFromModal()" class="flex-1 py-3 bg-brand-600 text-white font-semibold rounded-2xl shadow-lg">Save Weight</button>
+                </div>
+            `);
+        }
+
+        function saveBodyweightFromModal() {
+            const val = parseFloat(document.getElementById('modal-bw-input').value);
+            if (!val || isNaN(val)) {
+                showToast("Please enter a valid weight", "error");
+                return;
+            }
+            const today = new Date().toISOString().split('T')[0];
+            appState.bodyweightLogs.push({ date: today, weight: val });
+            saveState();
+            closeModal();
+            showToast("Bodyweight logged successfully");
+            router.navigate('home');
+        }
+    </script>
+
+    <script>
+        /* ==========================================
+           TRAIN VIEW: ROUTINES, LIBRARY & HISTORY
+           ========================================== */
+        let activeTrainTab = 'routines';
+
+        function renderTrainView() {
+            return `
+                <div class="max-w-4xl mx-auto space-y-6 pb-12">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h1 class="text-2xl md:text-3xl font-bold tracking-tight">Training Hub</h1>
+                            <p class="text-sm text-light-muted dark:text-dark-muted mt-1">Manage routines, browse exercise library & review history.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button onclick="router.navigate('ai-generator')" class="px-4 py-2.5 bg-brand-50 dark:bg-dark-elevated border border-brand-500/30 text-brand-600 dark:text-brand-400 font-semibold rounded-xl text-sm flex items-center gap-2 hover:bg-brand-100 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+                                <span>Smart AI Generator</span>
+                            </button>
+                            <button onclick="router.navigate('routine-builder')" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-sm shadow-lg shadow-brand-500/25 flex items-center gap-2 transition-all">
+                                <span>+ Create Routine</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabs Navigation -->
+                    <div class="flex border-b border-light-border dark:border-dark-border gap-6">
+                        <button onclick="switchTrainTab('routines')" id="tab-btn-routines" class="pb-3 font-semibold text-sm border-b-2 transition-colors ${activeTrainTab === 'routines' ? 'border-brand-600 text-brand-600 dark:text-brand-400' : 'border-transparent text-light-muted dark:text-dark-muted'}">My Routines (${appState.routines.length})</button>
+                        <button onclick="switchTrainTab('library')" id="tab-btn-library" class="pb-3 font-semibold text-sm border-b-2 transition-colors ${activeTrainTab === 'library' ? 'border-brand-600 text-brand-600 dark:text-brand-400' : 'border-transparent text-light-muted dark:text-dark-muted'}">Exercise Library (${appState.exercises.length})</button>
+                        <button onclick="switchTrainTab('history')" id="tab-btn-history" class="pb-3 font-semibold text-sm border-b-2 transition-colors ${activeTrainTab === 'history' ? 'border-brand-600 text-brand-600 dark:text-brand-400' : 'border-transparent text-light-muted dark:text-dark-muted'}">Workout History (${appState.workouts.length})</button>
+                    </div>
+
+                    <!-- Tab Content Container -->
+                    <div id="train-tab-content"></div>
+                </div>
+            `;
+        }
+
+        function switchTrainTab(tab) {
+            activeTrainTab = tab;
+            router.renderView();
+        }
+
+        function initTrainTabs() {
+            const container = document.getElementById('train-tab-content');
+            if (!container) return;
+
+            if (activeTrainTab === 'routines') {
+                container.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${appState.routines.map(r => `
+                            <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex gap-2">
+                                            ${r.muscles.map(m => `<span class="px-2.5 py-0.5 bg-brand-50 dark:bg-dark-elevated text-brand-600 dark:text-brand-400 font-semibold text-[11px] rounded-lg">${m}</span>`).join('')}
+                                        </div>
+                                        <span class="text-xs text-light-muted dark:text-dark-muted font-medium">${r.duration || 45} min</span>
+                                    </div>
+                                    <h3 class="text-lg font-bold mb-1">${r.name}</h3>
+                                    <p class="text-xs text-light-muted dark:text-dark-muted mb-4">${r.description || 'No description provided.'}</p>
+                                    <div class="text-xs text-light-muted dark:text-dark-muted font-medium mb-6">
+                                        ${r.exercises.length} exercises · Last performed: ${r.lastPerformed || 'Never'}
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 pt-4 border-t border-light-border dark:border-dark-border">
+                                    <button onclick="startWorkout('${r.id}')" class="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5">
+                                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                        <span>Start</span>
+                                    </button>
+                                    <button onclick="duplicateRoutine('${r.id}')" class="px-3 py-2.5 bg-light-bg dark:bg-dark-elevated border border-light-border dark:border-dark-border text-xs font-semibold rounded-xl hover:bg-light-border transition-colors">Duplicate</button>
+                                    <button onclick="deleteRoutine('${r.id}')" class="px-3 py-2.5 bg-red-500/10 text-red-500 text-xs font-semibold rounded-xl hover:bg-red-500/20 transition-colors">Delete</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (activeTrainTab === 'library') {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex gap-3">
+                            <input type="text" id="exercise-search" oninput="filterExercises()" placeholder="Search exercises by name or muscle..." class="flex-1 px-4 py-3 bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-2xl text-sm focus:outline-none focus:border-brand-600">
+                            <button onclick="openCreateExerciseModal()" class="px-4 py-3 bg-brand-600 text-white font-semibold rounded-2xl text-sm shadow-md">+ Custom Exercise</button>
+                        </div>
+                        <div id="exercise-list-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            ${renderExerciseListItems(appState.exercises)}
+                        </div>
+                    </div>
+                `;
+            } else if (activeTrainTab === 'history') {
+                container.innerHTML = `
+                    <div class="space-y-3">
+                        ${appState.workouts.length === 0 ? `
+                            <div class="text-center py-16 bg-light-card dark:bg-dark-card rounded-3xl border border-light-border dark:border-dark-border p-8">
+                                <div class="w-16 h-16 rounded-2xl bg-brand-500/10 text-brand-600 flex items-center justify-center mx-auto mb-4 text-2xl">📋</div>
+                                <h3 class="font-bold text-lg mb-1">No workouts yet</h3>
+                                <p class="text-sm text-light-muted dark:text-dark-muted mb-6">Complete your first session to start tracking your training history.</p>
+                                <button onclick="startWorkout('${appState.routines[0]?.id || 'rut_1'}')" class="px-6 py-3 bg-brand-600 text-white font-semibold rounded-2xl shadow-lg">Start First Workout</button>
+                            </div>
+                        ` : appState.workouts.map(w => `
+                            <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-3xl p-5 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <div class="flex items-center gap-3 mb-1">
+                                        <h4 class="font-bold text-base">${w.routineName}</h4>
+                                        <span class="text-xs text-light-muted dark:text-dark-muted">${new Date(w.date).toLocaleDateString()}</span>
+                                    </div>
+                                    <p class="text-xs text-light-muted dark:text-dark-muted font-medium">${w.durationMinutes} mins · ${w.exercisesCount} exercises · ${w.totalSets} sets · ${w.totalVolume} kg volume</p>
+                                    ${w.prs && w.prs.length > 0 ? `<div class="mt-2 flex gap-2"><span class="px-2 py-0.5 bg-amber-500/10 text-amber-500 text-[10px] font-bold rounded-lg">🏆 ${w.prs[0]}</span></div>` : ''}
+                                </div>
+                                <button onclick="viewWorkoutDetail('${w.id}')" class="px-4 py-2 bg-light-bg dark:bg-dark-elevated border border-light-border dark:border-dark-border text-xs font-semibold rounded-xl hover:bg-light-border transition-colors">Details</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+        }
+
+        function renderExerciseListItems(exercises) {
+            if (exercises.length === 0) {
+                return `<div class="col-span-2 text-center py-12 text-light-muted dark:text-dark-muted">No exercises found.</div>`;
+            }
+            return exercises.map(ex => `
+                <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-2xl p-4 shadow-sm flex items-center justify-between">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="px-2 py-0.5 bg-brand-50 dark:bg-dark-elevated text-brand-600 dark:text-brand-400 font-semibold text-[10px] rounded-lg">${ex.muscle}</span>
+                            <span class="text-xs text-light-muted dark:text-dark-muted font-medium">${ex.equipment}</span>
+                        </div>
+                        <h4 class="font-bold text-sm">${ex.name}</h4>
+                        <p class="text-xs text-light-muted dark:text-dark-muted mt-1 line-clamp-1">${ex.instructions}</p>
+                    </div>
+                    <button onclick="openExerciseDetail('${ex.id}')" class="px-3 py-1.5 bg-light-bg dark:bg-dark-elevated border border-light-border dark:border-dark-border text-xs font-semibold rounded-xl hover:bg-light-border transition-colors">View</button>
+                </div>
+            `).join('');
+        }
+
+        function filterExercises() {
+            const query = document.getElementById('exercise-search').value.toLowerCase();
+            const filtered = appState.exercises.filter(ex => ex.name.toLowerCase().includes(query) || ex.muscle.toLowerCase().includes(query));
+            document.getElementById('exercise-list-grid').innerHTML = renderExerciseListItems(filtered);
+        }
+
+        function duplicateRoutine(id) {
+            const r = appState.routines.find(item => item.id === id);
+            if (!r) return;
+            const newR = { ...r, id: 'rut_' + Date.now(), name: r.name + ' (Copy)' };
+            appState.routines.push(newR);
+            saveState();
+            showToast("Routine duplicated successfully");
+            router.navigate('train');
+        }
+
+        function deleteRoutine(id) {
+            if (confirm("Are you sure you want to delete this routine?")) {
+                appState.routines = appState.routines.filter(item => item.id !== id);
+                saveState();
+                showToast("Routine deleted");
+                router.navigate('train');
+            }
+        }
+
+        function openCreateExerciseModal() {
+            openModal(`
+                <h3 class="text-lg font-bold mb-4">Create Custom Exercise</h3>
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <label class="block text-xs font-semibold text-light-muted dark:text-dark-muted uppercase mb-1">Exercise Name</label>
+                        <input type="text" id="new-ex-name" placeholder="e.g. Cable Lateral Raise" class="w-full px-4 py-3 bg-light-bg dark:bg-dark-elevated border border-light-border dark:border-dark-border rounded-xl text-sm focus:outline-none focus:border-brand-600">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-light-muted dark:text-dark-muted uppercase mb-1">Muscle Group</label>
+                            <select id="new-ex-muscle" class="w-full px-4 py-3 bg-light-bg dark:bg-dark-elevated border border-light-border dark:border-dark-border rounded-xl text-sm focus:outline-none focus:border-brand-600">
+                                <option>Chest</option><option>Back</option><option>Shoulders</option><option>Biceps</option><option>Triceps</option><option>Quads</option><option>Isquiotibiales</option><option>Glutes</option><option>Calves</option><option>Abs</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-light-muted dark:text-dark-muted uppercase mb-1">Equipment</label>
+                            <select id="new-ex-eq" class="w-full px-4 py-3 bg-light-bg dark:bg-dark-elevated border border-light-border dark:border-dark-border rounded-xl text-sm focus:outline-none focus:border-brand-600">
+                                <option>Barbell</option><option>Dumbbells</option><option>Cable</option><option>Machine</option><option>Bodyweight</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-light-muted dark:text-dark-muted uppercase mb-1">Instructions</label>
+                        <textarea id="new-ex-instr" placeholder="Brief execution guide..." class="w-full px-4 py-3 bg-light-bg dark:bg-dark-elevated border border-light-border dark:border-dark-border rounded-xl text-sm focus:outline-none focus:border-brand-600 h-24 resize-none"></textarea>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeModal()" class="flex-1 py-3 bg-light-bg dark:bg-dark-elevated font-semibold rounded-xl border border-light-border dark:border-dark-border">Cancel</button>
+                    <button onclick="saveCustomExercise()" class="flex-1 py-3 bg-brand-600 text-white font-semibold rounded-2xl shadow-lg">Save Exercise</button>
+                </div>
+            `);
+        }
+
+        function saveCustomExercise() {
+            const name = document.getElementById('new-ex-name').value.trim();
+            const muscle = document.getElementById('new-ex-muscle').value;
+            const equipment = document.getElementById('new-ex-eq').value;
+            const instructions = document.getElementById('new-ex-instr').value.trim();
+
+            if (!name) {
+                showToast("Please enter an exercise name", "error");
+                return;
+            }
+
+            const newEx = {
+                id: 'ex_' + Date.now(),
+                name,
+                muscle,
+                secondary: [],
+                equipment,
+                pattern: 'Compound',
+                type: 'weight_reps',
+                instructions: instructions || 'Standard execution.'
+            };
+
+            appState.exercises.push(newEx);
+            saveState();
+            closeModal();
+            showToast("Custom exercise created successfully");
+            router.navigate('train');
+        }
+
+        function openExerciseDetail(id) {
+            const ex = appState.exercises.find(item => item.id === id);
+            if (!ex) return;
+            openModal(`
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="px-2.5 py-0.5 bg-brand-50 dark:bg-dark-elevated text-brand-600 dark:text-brand-400 font-semibold text-xs rounded-lg">${ex.muscle}</span>
+                    <span class="text-xs text-light-muted dark:text-dark-muted font-medium">${ex.equipment}</span>
+                </div>
+                <h3 class="text-xl font-bold mb-3">${ex.name}</h3>
+                <p class="text-sm text-light-muted dark:text-dark-muted leading-relaxed mb-6">${ex.instructions}</p>
+                <button onclick="closeModal()" class="w-full py-3 bg-brand-600 text-white font-semibold rounded-2xl shadow-lg">Close</button>
+            `);
+        }
+    </script>
+
+    <script>
+        /* ==========================================
+           ROUTINE BUILDER & AI GENERATOR
+           ========================================== */
+        let builderExercises = [];
+
+        function renderRoutineBuilderView() {
+            return `
+                <div class="max-w-3xl mx-auto space-y-6 pb-12">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <button onclick="router.navigate('train')" class="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline mb-1 flex items-center gap-1">← Back to Training</button>
+                            <h1 class="text-2xl font-bold tracking-tight">Routine Builder</h1>
+                        </div>
+                    </div>
+
+                    <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-3xl p-6 shadow-sm space-y-5">
+                        <div>
+                            <label class="block text-xs font-semibold text-light-muted dark:text-dark-muted uppercase mb-1.5">Routine Name</label>
+                            <input type="text" id="builder-name" placeholder="e.g. Upper Body Power" class="w-full px-4 py-3 bg-light-bg dark:bg-dark-elevated border border-light-border dark:border-dark-border rounded-xl text-sm font-semibold focus:outline-none focus:border-brand-600">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-light-muted dark:text-dark-muted uppercase mb-1.5">Description</label>
+                            <input type="text" id="builder-desc" placeholder="e.g. Focus on strength and explosive power." class="w-full px-4 py-3 bg-light-bg dark:bg-dark-elevated border border-light-border dark:border-dark-border rounded-xl text-sm focus:outline-none focus:border-brand-600">
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold text-base">Exercises</h3>
+                                <button onclick="openBuilderExercisePicker()" class="px-3 py-2 bg-brand-50 dark:bg-dark-elevated text-brand-600 dark:text-brand-400 text-xs font-semibold rounded-xl border border-brand-500/20 hover:bg-brand-100">+ Add Exercise</button>
+                            </div>
+                            <div id="builder-exercises-list" class="space-y-3">
+                                ${builderExercises.length === 0 ? `<p class="text-sm text-light-muted dark:text-dark-muted py-6 text-center border border-dashed border-light-border dark:border-dark-border rounded-2xl">No exercises added yet. Click "+ Add Exercise".</p>` : builderExercises.map((be, idx) => {
+                                    const exObj = appState.exercises.find(e => e.id === be.exerciseId) || {};
+                                    return `
+                                        <div class="flex items-center justify-between p-4 bg-light-bg dark:bg-dark-elevated rounded-2xl border border-light-border dark:border-dark-border">
+                                            <div>
+                                                <h4 class="font-bold text-sm">${exObj.name || 'Exercise'}</h4>
+                                                <p class="text-xs text-light-muted dark:text-dark-muted">${be.sets} sets · ${be.targetReps} reps · ${be.restSec}s rest</p>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <button onclick="removeBuilderExercise(${idx})" class="p-2 text-red-500 hover:bg-red-500/10 rounded-xl">✕</button>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+
+                        <button onclick="saveNewRoutine()" class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-2xl shadow-lg shadow-brand-500/30 transition-all">Save Routine</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openBuilderExercisePicker() {
+            openModal(`
+                <h3 class="text-lg font-bold mb-4">Select Exercise</h3>
+                <div class="space-y-2 max-h-96 overflow-y-auto mb-4">
+                    ${appState.exercises.map(ex => `
+                        <div onclick="addExerciseToBuilder('${ex.id}')" class="p-3 bg-light-bg dark:bg-dark-elevated rounded-2xl border border-light-border dark:border-dark-border cursor-pointer hover:border-brand-600 transition-all flex items-center justify-between">
+                            <div>
+                                <h4 class="font-bold text-sm">${ex.name}</h4>
+                                <span class="text-xs text-light-muted dark:text-dark-muted">${ex.muscle} · ${ex.equipment}</span>
+                            </div>
+                            <span class="text-brand-600 font-bold text-lg">+</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <button onclick="closeModal()" class="w-full py-3 bg-light-bg dark:bg-dark-elevated font-semibold rounded-xl border border-light-border dark:border-dark-border">Cancel</button>
+            `);
+        }
+
+        function addExerciseToBuilder(exerciseId) {
+            builderExercises.push({
+                exerciseId,
+                sets: 3,
+                targetReps: '8-10',
+                restSec: 90
+            });
+            closeModal();
+            router.navigate('routine-builder');
+        }
+
+        function removeBuilderExercise(index) {
+            builderExercises.splice(index, 1);
+            router.navigate('routine-builder');
+        }
+
+        function saveNewRoutine() {
+            const name = document.getElementById('builder-name').value.trim();
+            const description = document.getElementById('builder-desc').value.trim();
+
+            if (!name) {
+                showToast("Please enter a routine name", "error");
+                return;
+            }
+            if (builderExercises.length === 0) {
+                showToast("Please add at least one exercise", "error");
+                return;
+            }
+
+            // Extract unique muscles
+            const musclesMap = {};
+            builderExercises.forEach(be => {
+                const ex = appState.exercises.find(e => e.id === be.exerciseId);
+                if (ex) musclesMap[ex.muscle] = true;
+            });
+
+            const newRoutine = {
+                id: 'rut_' + Date.now(),
+                name,
+                description: description || 'Custom created routine.',
+                duration: builderExercises.length * 10,
+                muscles: Object.keys(musclesMap),
+                exercises: builderExercises,
+                lastPerformed: 'Never'
+            };
+
+            appState.routines.push(newRoutine);
+            saveState();
+            builderExercises = [];
+            showToast("Routine saved successfully!");
+            router.navigate('train');
+        }
+
+        function renderAIGeneratorView() {
+            return `
+                <div class="max-w-2xl mx-auto space-y-6 pb-12">
+                    <button onclick="router.navigate('train')" class="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1">← Back to Training</button>
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight">Smart AI Routine Generator</h1>
+                        <p class="text-sm text-light-muted dark:text-dark-muted mt-1">Configure your parameters and let our intelligent engine build a tailored routine.</p>
+                    </div>
+
+                    <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-3xl p-6 shadow-sm space-y-6">
+                        <div>
+                            <label class="block text-xs font-semibold text-light-muted dark:text-dark-muted uppercase mb-2">Training Goal</label>
+                            <select id="gen-goal" class="w-full px-4 py-3 bg-light-bg dark:bg-dark-elevated border border-light-border dark:border-dark-border rounded-xl text-sm font-semibold focus:outline-none focus:border-brand-600">
+                                <option>Build Muscle (Hypertrophy)</option>
+                                <option>Get Stronger (Strength)</option>
+                                <option>General Fitness</option>
+                                <option>Improve Consistency</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-light-muted dark:text-dark-muted uppercase mb-2">Experience Level</label>
+                            <select id="gen-exp" class="w-full px-4 py-3 bg-light-bg dark:bg-dark-elevated border border-light-border dark:border-dark-border rounded-xl text-sm font-semibold focus:outline-none focus:border-brand-600">
+                                <option>Intermediate</option>
+                                <option>Beginner</option>
+                                <option>Advanced</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-light-muted dark:text-dark-muted uppercase mb-2">Equipment Available</label>
+                            <select id="gen-eq" class="w-full px-4 py-3 bg-light-bg dark:bg-dark-elevated border border-light-border dark:border-dark-border rounded-xl text-sm font-semibold focus:outline-none focus:border-brand-600">
+                                <option>Full Gym</option>
+                                <option>Dumbbells Only</option>
+                                <option>Bodyweight</option>
+                            </select>
+                        </div>
+
+                        <button onclick="generateAIRoutine()" class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-2xl shadow-lg shadow-brand-500/30 transition-all">Generate Routine</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateAIRoutine() {
+            const goal = document.getElementById('gen-goal').value;
+            const generatedRoutine = {
+                id: 'rut_' + Date.now(),
+                name: `Smart AI: ${goal.split(' ')[0]} Focus`,
+                description: 'Generated based on your personalized goals and local rule engine.',
+                duration: 55,
+                muscles: ['Chest', 'Shoulders', 'Triceps'],
+                exercises: [
+                    { exerciseId: 'ex_1', sets: 4, targetReps: '8-10', restSec: 120 },
+                    { exerciseId: 'ex_2', sets: 3, targetRests: 90, targetReps: '10-12', restSec: 90 },
+                    { exerciseId: 'ex_7', sets: 3, targetReps: '8-10', restSec: 90 }
+                ],
+                lastPerformed: 'Never'
+            };
+            appState.routines.push(generatedRoutine);
+            saveState();
+            showToast("Smart routine generated & saved!");
+            router.navigate('train');
+        }
+    </script>
+
+    <script>
+        /* ==========================================
+           ACTIVE WORKOUT & SMART REST TIMER
+           ========================================== */
+        let activeTimerInterval = null;
+        let restTimerSecondsRemaining = 0;
+        let restTimerTotal = 90;
+        let restTimerInterval = null;
+
+        function startWorkout(routineId) {
+            const routine = appState.routines.find(r => r.id === routineId);
+            if (!routine) return;
+
+            appState.activeSession = {
+                routineId: routine.id,
+                routineName: routine.name,
+                startTime: Date.now(),
+                exercises: routine.exercises.map(re => {
+                    const exObj = appState.exercises.find(e => e.id === re.exerciseId) || {};
+                    return {
+                        exerciseId: re.exerciseId,
+                        name: exObj.name || 'Exercise',
+                        sets: Array.from({ length: re.sets }, (_, i) => ({
+                            setNumber: i + 1,
+                            weight: 80,
+                            reps: 8,
+                            completed: false
+                        }))
+                    };
+                })
+            };
+            saveState();
+            router.navigate('active-workout');
+            showToast("Workout started!");
+        }
+
+        function renderActiveWorkoutView() {
+            const session = appState.activeSession;
+            if (!session) return '';
+
+            return `
+                <div class="max-w-2xl mx-auto space-y-6 pb-24">
+                    <div class="flex items-center justify-between bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border p-5 rounded-3xl shadow-sm">
+                        <div>
+                            <span class="text-xs font-semibold text-brand-600 dark:text-brand-400 uppercase tracking-wider">Active Session</span>
+                            <h1 class="text-xl font-bold mt-0.5">${session.routineName}</h1>
+                        </div>
+                        <div class="text-right">
+                            <div id="workout-elapsed-time" class="font-mono text-xl font-bold text-brand-600 dark:text-brand-400">00:00</div>
+                            <button onclick="finishActiveWorkout()" class="mt-1 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow-md transition-all">Finish Workout</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        ${session.exercises.map((ex, exIndex) => `
+                            <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-3xl p-5 shadow-sm space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="font-bold text-base">${ex.name}</h3>
+                                    <span class="text-xs text-light-muted dark:text-dark-muted font-medium">Previous: 80 kg × 8</span>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <div class="grid grid-cols-12 gap-2 text-xs font-semibold text-light-muted dark:text-dark-muted px-2">
+                                        <div class="col-span-2">SET</div>
+                                        <div class="col-span-4">WEIGHT (${appState.user.unit})</div>
+                                        <div class="col-span-4">REPS</div>
+                                        <div class="col-span-2 text-center">DONE</div>
+                                    </div>
+                                    ${ex.sets.map((set, setIndex) => `
+                                        <div class="grid grid-cols-12 gap-2 items-center p-2 bg-light-bg dark:bg-dark-elevated rounded-2xl border border-light-border dark:border-dark-border">
+                                            <div class="col-span-2 font-bold text-sm pl-2">${set.setNumber}</div>
+                                            <div class="col-span-4">
+                                                <input type="number" step="0.5" value="${set.weight}" onchange="updateSetActive(${exIndex}, ${setIndex}, 'weight', this.value)" class="w-full px-3 py-2 bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-xl font-semibold text-sm focus:outline-none focus:border-brand-600">
+                                            </div>
+                                            <div class="col-span-4">
+                                                <input type="number" value="${set.reps}" onchange="updateSetActive(${exIndex}, ${setIndex}, 'reps', this.value)" class="w-full px-3 py-2 bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-xl font-semibold text-sm focus:outline-none focus:border-brand-600">
+                                            </div>
+                                            <div class="col-span-2 flex justify-center">
+                                                <button onclick="toggleSetComplete(${exIndex}, ${setIndex})" class="w-9 h-9 rounded-xl flex items-center justify-center font-bold transition-all ${set.completed ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20' : 'bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border text-light-muted'}">
+                                                    ${set.completed ? '✓' : ''}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function initActiveWorkout() {
+            if (activeTimerInterval) clearInterval(activeTimerInterval);
+            activeTimerInterval = setInterval(() => {
+                if (!appState.activeSession) return;
+                const elapsedSec = Math.floor((Date.now() - appState.activeSession.startTime) / 1000);
+                const mins = String(Math.floor(elapsedSec / 60)).padStart(2, '0');
+                const secs = String(elapsedSec % 60).padStart(2, '0');
+                const el = document.getElementById('workout-elapsed-time');
+                if (el) el.textContent = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function updateSetActive(exIndex, setIndex, field, value) {
+            if (!appState.activeSession) return;
+            appState.activeSession.exercises[exIndex].sets[setIndex][field] = parseFloat(value) || 0;
+            saveState();
+        }
+
+        function toggleSetComplete(exIndex, setIndex) {
+            if (!appState.activeSession) return;
+            const set = appState.activeSession.exercises[exIndex].sets[setIndex];
+            set.completed = !set.completed;
+            saveState();
+            router.renderView();
+
+            if (set.completed && appState.timerSettings.autoStart) {
+                triggerSmartRestTimer(90, appState.activeSession.exercises[exIndex].name);
+            }
+        }
+
+        function triggerSmartRestTimer(durationSeconds, exerciseName) {
+            restTimerSecondsRemaining = durationSeconds;
+            restTimerTotal = durationSeconds;
+            document.getElementById('rest-exercise-title').textContent = exerciseName;
+            document.getElementById('rest-timer-overlay').classList.remove('hidden');
+
+            if (restTimerInterval) clearInterval(restTimerInterval);
+            restTimerInterval = setInterval(() => {
+                restTimerSecondsRemaining--;
+                const mins = String(Math.floor(restTimerSecondsRemaining / 60)).padStart(2, '0');
+                const secs = String(restTimerSecondsRemaining % 60).padStart(2, '0');
+                document.getElementById('rest-time-display').textContent = `${mins}:${secs}`;
+                
+                const pct = (restTimerSecondsRemaining / restTimerTotal) * 100;
+                document.getElementById('rest-progress-bar').style.width = `${pct}%`;
+
+                if (restTimerSecondsRemaining <= 0) {
+                    clearInterval(restTimerInterval);
+                    soundEngine.playBeep();
+                    dismissRestTimer();
+                    showToast("Rest completed! Ready for next set.");
+                }
+            }, 1000);
+        }
+
+        function dismissRestTimer() {
+            if (restTimerInterval) clearInterval(restTimerInterval);
+            document.getElementById('rest-timer-overlay').classList.add('hidden');
+        }
+
+        function adjustRestTime(seconds) {
+            restTimerSecondsRemaining = Math.max(0, restTimerSecondsRemaining + seconds);
+            const mins = String(Math.floor(restTimerSecondsRemaining / 60)).padStart(2, '0');
+            const secs = String(restTimerSecondsRemaining % 60).padStart(2, '0');
+            document.getElementById('rest-time-display').textContent = `${mins}:${secs}`;
+        }
+
+        function toggleRestPause() {
+            // Pause/resume logic
+        }
+
+        function finishActiveWorkout() {
+            if (!appState.activeSession) return;
+            if (activeTimerInterval) clearInterval(activeTimerInterval);
+
+            const session = appState.activeSession;
+            const durationMin = Math.round((Date.now() - session.startTime) / 60000) || 45;
+            
+            let totalSets = 0;
+            let totalVolume = 0;
+            session.exercises.forEach(ex => {
+                ex.sets.forEach(s => {
+                    if (s.completed) {
+                        totalSets++;
+                        totalVolume += (s.weight * s.reps);
+                    }
+                });
+            });
+
+            const completedWorkout = {
+                id: 'w_' + Date.now(),
+                routineId: session.routineId,
+                routineName: session.routineName,
+                date: new Date().toISOString(),
+                durationMinutes: durationMin,
+                exercisesCount: session.exercises.length,
+                totalSets,
+                totalVolume,
+                prs: totalVolume > 5000 ? ['New Volume Milestone Achieved!'] : []
+            };
+
+            appState.workouts.unshift(completedWorkout);
+            appState.activeSession = null;
+            saveState();
+
+            openModal(`
+                <div class="text-center space-y-4">
+                    <div class="w-16 h-16 rounded-3xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto text-2xl font-bold">✓</div>
+                    <h3 class="text-2xl font-bold">Workout Complete!</h3>
+                    <p class="text-sm text-light-muted dark:text-dark-muted">${completedWorkout.routineName}</p>
+                    <div class="grid grid-cols-3 gap-2 py-4 border-y border-light-border dark:border-dark-border">
+                        <div>
+                            <p class="text-xs text-light-muted">Duration</p>
+                            <p class="font-bold text-lg">${completedWorkout.durationMinutes}m</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-light-muted">Sets</p>
+                            <p class="font-bold text-lg">${completedWorkout.totalSets}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-light-muted">Volume</p>
+                            <p class="font-bold text-lg">${completedWorkout.totalVolume} kg</p>
+                        </div>
+                    </div>
+                    <button onclick="closeModal(); router.navigate('home');" class="w-full py-3.5 bg-brand-600 text-white font-semibold rounded-2xl shadow-lg">Save & Return Home</button>
+                </div>
+            `);
+        }
+    </script>
+
+    <script>
+        /* ==========================================
+           PLAN, PROGRESS & PROFILE VIEWS
+           ========================================== */
+        function renderPlanView() {
+            return `
+                <div class="max-w-4xl mx-auto space-y-6 pb-12">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-bold tracking-tight">Training Schedule</h1>
+                        <p class="text-sm text-light-muted dark:text-dark-muted mt-1">Organize your weekly workouts and recovery days.</p>
+                    </div>
+
+                    <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-3xl p-6 shadow-sm space-y-6">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-lg">October 2026</h3>
+                            <div class="flex gap-2">
+                                <button class="p-2 bg-light-bg dark:bg-dark-elevated rounded-xl border border-light-border dark:border-dark-border">&lt;</button>
+                                <button class="p-2 bg-light-bg dark:bg-dark-elevated rounded-xl border border-light-border dark:border-dark-border">&gt;</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-7 gap-2 text-center">
+                            ${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => `<span class="text-xs font-semibold text-light-muted dark:text-dark-muted py-2">${d}</span>`).join('')}
+                            ${Array.from({length: 31}, (_, i) => {
+                                const dayNum = i + 1;
+                                const isToday = dayNum === 11;
+                                return `
+                                    <div class="h-20 rounded-2xl border p-2 flex flex-col justify-between transition-all ${isToday ? 'border-brand-600 bg-brand-50/50 dark:bg-dark-elevated' : 'border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-elevated'}">
+                                        <span class="text-xs font-bold ${isToday ? 'text-brand-600 dark:text-brand-400' : ''}">${dayNum}</span>
+                                        ${dayNum % 2 === 0 ? '<span class="text-[9px] bg-brand-600 text-white font-semibold py-0.5 px-1 rounded truncate">Push A</span>' : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function initPlanCalendar() {}
+
+        function renderProgressView() {
+            return `
+                <div class="max-w-4xl mx-auto space-y-6 pb-12">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-bold tracking-tight">Progress & Analytics</h1>
+                        <p class="text-sm text-light-muted dark:text-dark-muted mt-1">Review your volume evolution, strength metrics & bodyweight.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-3xl p-5 shadow-sm">
+                            <p class="text-xs text-light-muted font-medium uppercase">Total Workouts</p>
+                            <h3 class="text-2xl font-bold mt-1">${appState.workouts.length}</h3>
+                        </div>
+                        <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-3xl p-5 shadow-sm">
+                            <p class="text-xs text-light-muted font-medium uppercase">Total Volume</p>
+                            <h3 class="text-2xl font-bold mt-1">26.3t</h3>
+                        </div>
+                        <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-3xl p-5 shadow-sm">
+                            <p class="text-xs text-light-muted font-medium uppercase">Personal Records</p>
+                            <h3 class="text-2xl font-bold mt-1">12</h3>
+                        </div>
+                        <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-3xl p-5 shadow-sm">
+                            <p class="text-xs text-light-muted font-medium uppercase">Bodyweight</p>
+                            <h3 class="text-2xl font-bold mt-1">77.6 kg</h3>
+                        </div>
+                    </div>
+
+                    <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-3xl p-6 shadow-sm">
+                        <h3 class="font-bold text-base mb-4">Volume Progression (Last 4 Weeks)</h3>
+                        <div class="h-48 flex items-end gap-6 pt-4">
+                            ${[18000, 21500, 24000, 26370].map((v, i) => {
+                                const h = Math.round((v / 30000) * 100);
+                                return `
+                                    <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                                        <span class="text-xs font-semibold text-brand-600">${v} kg</span>
+                                        <div class="w-full bg-brand-600/10 rounded-t-xl relative h-full">
+                                            <div class="absolute bottom-0 left-0 right-0 bg-brand-600 rounded-t-xl transition-all duration-500" style="height: ${h}%"></div>
+                                        </div>
+                                        <span class="text-xs text-light-muted">Week ${i+1}</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function initProgressCharts() {}
+
+        function renderProfileView() {
+            return `
+                <div class="max-w-3xl mx-auto space-y-6 pb-12">
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight">Profile & Settings</h1>
+                        <p class="text-sm text-light-muted dark:text-dark-muted mt-1">Manage your preferences, data backups and app theme.</p>
+                    </div>
+
+                    <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-3xl p-6 shadow-sm space-y-6">
+                        <div class="flex items-center gap-4 pb-6 border-b border-light-border dark:border-dark-border">
+                            <div class="w-16 h-16 rounded-2xl bg-brand-500/10 text-brand-600 flex items-center justify-center font-bold text-2xl">T</div>
+                            <div>
+                                <h3 class="text-lg font-bold">${appState.user.name}</h3>
+                                <p class="text-xs text-light-muted">${appState.user.email} · Pro Member</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <h4 class="font-bold text-sm">Appearance & Units</h4>
+                            <div class="flex items-center justify-between p-4 bg-light-bg dark:bg-dark-elevated rounded-2xl border border-light-border dark:border-dark-border">
+                                <div>
+                                    <p class="font-semibold text-sm">Dark Mode</p>
+                                    <p class="text-xs text-light-muted">Switch between light and dark themes</p>
+                                </div>
+                                <button onclick="toggleDarkMode()" class="px-4 py-2 bg-brand-600 text-white text-xs font-semibold rounded-xl shadow">Toggle Theme</button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4 pt-4 border-t border-light-border dark:border-dark-border">
+                            <h4 class="font-bold text-sm">Data Management</h4>
+                            <div class="flex flex-wrap gap-3">
+                                <button onclick="exportDataJSON()" class="px-4 py-2.5 bg-light-bg dark:bg-dark-elevated border border-light-border dark:border-dark-border text-xs font-semibold rounded-xl hover:bg-light-border transition-colors">Export Backup (JSON)</button>
+                                <button onclick="resetAppDemo()" class="px-4 py-2.5 bg-red-500/10 text-red-500 text-xs font-semibold rounded-xl hover:bg-red-500/20 transition-colors">Reset Demo Data</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coming Soon Section -->
+                    <div class="space-y-4 pt-4">
+                        <h3 class="font-bold text-lg">Coming Soon</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-3xl p-5 opacity-75">
+                                <span class="px-2.5 py-0.5 bg-brand-50 dark:bg-dark-elevated text-brand-600 text-[10px] font-bold rounded-lg uppercase">Coming Soon</span>
+                                <h4 class="font-bold text-base mt-2">Nutrition</h4>
+                                <p class="text-xs text-light-muted mt-1">Calorie and macro tracking all in one place.</p>
+                            </div>
+                            <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-3xl p-5 opacity-75">
+                                <span class="px-2.5 py-0.5 bg-amber-500/10 text-amber-500 text-[10px] font-bold rounded-lg uppercase">Coming Soon</span>
+                                <h4 class="font-bold text-base mt-2">Achievements</h4>
+                                <p class="text-xs text-light-muted mt-1">Milestones, challenges and badges.</p>
+                            </div>
+                            <div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-3xl p-5 opacity-75">
+                                <span class="px-2.5 py-0.5 bg-emerald-500/10 text-emerald-500 text-[10px] font-bold rounded-lg uppercase">Coming Soon</span>
+                                <h4 class="font-bold text-base mt-2">Community</h4>
+                                <p class="text-xs text-light-muted mt-1">Share workouts and connect with friends.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            appState.user.theme = isDark ? 'dark' : 'light';
+            saveState();
+            showToast(`Theme switched to ${appState.user.theme}`);
+        }
+
+        function exportDataJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", "vyra_backup.json");
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+            showToast("Backup exported successfully");
+        }
+
+        function resetAppDemo() {
+            if (confirm("Reset application data to initial demo state?")) {
+                appState = StorageManager.reset();
+                saveState();
+                router.navigate('home');
+                showToast("Application reset to demo state");
+            }
+        }
+
+        function openCoachModal() {
+            openModal(`
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-600 flex items-center justify-center font-bold">🤖</div>
+                        <div>
+                            <h3 class="font-bold text-base">VYRA Smart Coach</h3>
+                            <p class="text-xs text-light-muted">Local rule-based assistant</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-light-muted bg-light-bg dark:bg-dark-elevated p-4 rounded-2xl border border-light-border dark:border-dark-border">
+                        "Based on your recent logs, your bench press has increased consistently. Keep resting 90-120 seconds between heavy compound sets for maximum strength retention."
+                    </p>
+                    <button onclick="closeModal()" class="w-full py-3 bg-brand-600 text-white font-semibold rounded-2xl shadow-lg">Got it</button>
+                </div>
+            `);
+        }
+    </script>
+
+    <script>
+        window.onload = function() {
+            if (appState.user.theme === 'dark' || (appState.user.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+            router.init();
+        };
+    </script>
+</body>
+</html>
